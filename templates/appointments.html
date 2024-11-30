@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}نوبت‌های من{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4">نوبت‌های من</h2>
+    
+    {% if appointments %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>تاریخ</th>
+                        <th>ساعت</th>
+                        <th>خدمت</th>
+                        <th>آرایشگر</th>
+                        <th>وضعیت</th>
+                        <th>عملیات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for appointment in appointments %}
+                        <tr>
+                            <td>{{ appointment.date }}</td>
+                            <td>{{ appointment.time|time:"H:i" }}</td>
+                            <td>{{ appointment.service.name }}</td>
+                            <td>{{ appointment.stylist.user.get_full_name }}</td>
+                            <td>
+                                <span class="badge {% if appointment.status == 'pending' %}bg-warning
+                                             {% elif appointment.status == 'confirmed' %}bg-success
+                                             {% elif appointment.status == 'completed' %}bg-info
+                                             {% else %}bg-danger{% endif %}">
+                                    {{ appointment.get_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if appointment.can_cancel %}
+                                    <form method="post" action="{% url 'booking:cancel_appointment' appointment.pk %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-danger">
+                                            <i class="bi bi-x-circle"></i> لغو
+                                        </button>
+                                    </form>
+                                {% endif %}
+                                
+                                {% if appointment.status == 'completed' and not appointment.review_set.exists %}
+                                    <a href="{% url 'booking:add_review' appointment.id %}" class="btn btn-sm btn-primary">
+                                        <i class="bi bi-star"></i> ثبت نظر
+                                    </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>
+            شما هنوز نوبتی ندارید
+        </div>
+        
+        <a href="{% url 'booking:book_appointment' %}" class="btn btn-primary">
+            <i class="bi bi-calendar-plus"></i>
+            رزرو نوبت جدید
+        </a>
+    {% endif %}
+</div>
+{% endblock %}

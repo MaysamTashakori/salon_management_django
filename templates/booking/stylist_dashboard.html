@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% block title %}داشبورد آرایشگر{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4">داشبورد آرایشگر</h2>
+
+    <div class="row">
+        <!-- نوبت‌های امروز -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">نوبت‌های امروز</h5>
+                </div>
+                <div class="card-body">
+                    {% if today_appointments %}
+                        {% for appointment in today_appointments %}
+                            <div class="appointment-item mb-3">
+                                <h6>{{ appointment.client.get_full_name }}</h6>
+                                <p>{{ appointment.service.name }} - ساعت {{ appointment.time|time:"H:i" }}</p>
+                                <span class="badge {% if appointment.status == 'pending' %}bg-warning
+                                           {% elif appointment.status == 'confirmed' %}bg-success
+                                           {% elif appointment.status == 'completed' %}bg-info
+                                           {% else %}bg-danger{% endif %}">
+                                    {{ appointment.get_status_display }}
+                                </span>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">نوبتی برای امروز ندارید</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- نوبت‌های در انتظار تایید -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-warning">
+                    <h5 class="card-title mb-0">نوبت‌های در انتظار تایید</h5>
+                </div>
+                <div class="card-body">
+                    {% if pending_appointments %}
+                        {% for appointment in pending_appointments %}
+                            <div class="appointment-item mb-3">
+                                <h6>{{ appointment.client.get_full_name }}</h6>
+                                <p>{{ appointment.service.name }} - {{ appointment.date|date:"Y/m/d" }} ساعت {{ appointment.time|time:"H:i" }}</p>
+                                <form method="post" action="{% url 'booking:update_appointment_status' appointment.pk %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" name="status" value="confirmed" class="btn btn-success btn-sm">تایید</button>
+                                    <button type="submit" name="status" value="cancelled" class="btn btn-danger btn-sm">رد</button>
+                                </form>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">نوبت در انتظار تاییدی ندارید</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- همه نوبت‌ها -->
+    <div class="card mt-4">
+        <div class="card-header bg-dark text-white">
+            <h5 class="card-title mb-0">همه نوبت‌ها</h5>
+        </div>
+        <div class="card-body">
+            {% if all_appointments %}
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>تاریخ</th>
+                                <th>ساعت</th>
+                                <th>مشتری</th>
+                                <th>خدمت</th>
+                                <th>وضعیت</th>
+                                <th>عملیات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for appointment in all_appointments %}
+                                <tr>
+                                    <td>{{ appointment.date|date:"Y/m/d" }}</td>
+                                    <td>{{ appointment.time|time:"H:i" }}</td>
+                                    <td>{{ appointment.client.get_full_name }}</td>
+                                    <td>{{ appointment.service.name }}</td>
+                                    <td>
+                                        <span class="badge {% if appointment.status == 'pending' %}bg-warning
+                                                   {% elif appointment.status == 'confirmed' %}bg-success
+                                                   {% elif appointment.status == 'completed' %}bg-info
+                                                   {% else %}bg-danger{% endif %}">
+                                            {{ appointment.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if appointment.status == 'confirmed' %}
+                                            <form method="post" action="{% url 'booking:update_appointment_status' appointment.pk %}" class="d-inline">
+                                                {% csrf_token %}
+                                                <button type="submit" name="status" value="completed" class="btn btn-success btn-sm">تکمیل شد</button>
+                                            </form>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted">هیچ نوبتی ثبت نشده است</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

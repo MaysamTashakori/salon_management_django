@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4">داشبورد {{ user.get_full_name }}</h2>
+    
+    {% if user.stylist %}
+        <div class="card">
+            <div class="card-header">
+                <h3>نوبت‌های امروز</h3>
+            </div>
+            <div class="card-body">
+                {% if appointments %}
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>مشتری</th>
+                                    <th>سرویس</th>
+                                    <th>ساعت</th>
+                                    <th>وضعیت</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for appointment in appointments %}
+                                    <tr>
+                                        <td>{{ appointment.client.get_full_name }}</td>
+                                        <td>{{ appointment.service.name }}</td>
+                                        <td>{{ appointment.time }}</td>
+                                        <td>{{ appointment.get_status_display }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p>نوبتی برای امروز ندارید</p>
+                {% endif %}
+            </div>
+        </div>
+    {% else %}
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>نوبت‌های من</h3>
+                    </div>
+                    <div class="card-body">
+                        {% if appointments %}
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>سرویس</th>
+                                            <th>آرایشگر</th>
+                                            <th>تاریخ</th>
+                                            <th>ساعت</th>
+                                            <th>وضعیت</th>
+                                            <th>عملیات</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for appointment in appointments %}
+                                            <tr>
+                                                <td>{{ appointment.service.name }}</td>
+                                                <td>{{ appointment.stylist }}</td>
+                                                <td>{{ appointment.get_persian_date }}</td>
+                                                <td>{{ appointment.time }}</td>
+                                                <td>{{ appointment.get_status_display }}</td>
+                                                <td>
+                                                    {% if appointment.status == 'pending' %}
+                                                        <a href="{% url 'booking:cancel_appointment' appointment.pk %}" 
+                                                           class="btn btn-danger btn-sm">
+                                                            لغو
+                                                        </a>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <p>شما هنوز نوبتی ندارید</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h4>رزرو نوبت جدید</h4>
+                        <a href="{% url 'booking:book_appointment' %}" class="btn btn-primary">
+                            رزرو نوبت
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

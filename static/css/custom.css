@@ -1,0 +1,17 @@
+.time-slot {
+    padding: 8px 16px;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.time-slot:hover:not(.disabled) {
+    background-color: #007bff;
+    color: white;
+}
+
+.time-slot.selected {
+    background-color: #28a745;
+    color: white;
+}

@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="card">
+        <div class="card-header bg-success text-white">
+            <h4 class="mb-0">
+                <i class="bi bi-check-circle-fill me-2"></i>
+                نوبت با موفقیت ثبت شد
+            </h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>خدمت:</strong> {{ appointment.service.name }}</p>
+                    <p><strong>آرایشگر:</strong> {{ appointment.stylist.name }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>تاریخ:</strong> {{ appointment.date }}</p>
+                    <p><strong>ساعت:</strong> {{ appointment.time }}</p>
+                </div>
+            </div>
+            <hr>
+            <div class="text-center">
+                <a href="{% url 'booking:book_appointment' %}" class="btn btn-primary">
+                    رزرو نوبت جدید
+                </a>
+                <a href="{% url 'booking:appointments' %}" class="btn btn-secondary">
+                    مشاهده همه نوبت‌ها
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

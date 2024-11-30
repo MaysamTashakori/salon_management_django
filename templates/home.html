@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="jumbotron">
+        <h1 class="display-4">به سالن زیبایی ما خوش آمدید</h1>
+        <p class="lead">بهترین خدمات آرایشی و زیبایی با بهترین متخصصین</p>
+        {% if not user.is_authenticated %}
+            <a class="btn btn-primary btn-lg" href="{% url 'booking:login' %}">ورود</a>
+            <a class="btn btn-secondary btn-lg" href="{% url 'booking:register' %}">ثبت‌نام</a>
+        {% else %}
+            <a class="btn btn-primary btn-lg" href="{% url 'booking:dashboard' %}">داشبورد من</a>
+        {% endif %}
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <h2>خدمات ما</h2>
+            <div class="row">
+                {% for service in services %}
+                    <div class="col-md-4">
+                        <div class="card mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ service.name }}</h5>
+                                <p class="card-text">{{ service.description }}</p>
+                                <p class="card-text">قیمت: {{ service.price }} تومان</p>
+                                <p class="card-text">مدت زمان: {{ service.duration }} دقیقه</p>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

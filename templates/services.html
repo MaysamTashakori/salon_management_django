@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4">خدمات ما</h2>
+    <div class="row">
+        {% for service in services %}
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ service.name }}</h5>
+                        <p class="card-text">{{ service.description }}</p>
+                        <p class="card-text">
+                            <strong>قیمت:</strong> {{ service.price }} تومان<br>
+                            <strong>مدت زمان:</strong> {{ service.duration }} دقیقه
+                        </p>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

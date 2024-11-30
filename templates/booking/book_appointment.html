@@ -1,0 +1,495 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}رزرو نوبت | سالن زیبایی{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/persian-datepicker@1.2.0/dist/css/persian-datepicker.min.css">
+<style>
+    .booking-card {
+        box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        border-radius: 15px;
+        overflow: hidden;
+    }
+    
+    .booking-header {
+        background: linear-gradient(45deg, #0d6efd, #0dcaf0);
+        padding: 20px;
+        color: white;
+    }
+    
+    .time-slots {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 10px;
+        margin-top: 15px;
+    }
+    
+    .time-slot {
+        padding: 12px;
+        text-align: center;
+        border: 2px solid #dee2e6;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+    
+    .time-slot:hover:not(.unavailable) {
+        background-color: #f8f9fa;
+        border-color: #0d6efd;
+        transform: translateY(-2px);
+    }
+    
+    .time-slot.selected {
+        background-color: #0d6efd;
+        color: white;
+        border-color: #0d6efd;
+    }
+    
+    .time-slot.unavailable {
+        background-color: #f8f9fa;
+        border-color: #dee2e6;
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+    
+    .holiday {
+        position: relative;
+        background-color: #ffebee !important;
+        color: #f44336 !important;
+        cursor: not-allowed !important;
+    }
+
+    .holiday::after {
+        content: 'تعطیل';
+        position: absolute;
+        bottom: 2px;
+        right: 2px;
+        font-size: 10px;
+        color: #f44336;
+    }
+
+    .datepicker-plot-area {
+        font-family: Vazir, Tahoma, sans-serif !important;
+        width: 300px !important;
+    }
+
+    .datepicker-day-view .table-days td {
+        width: 40px !important;
+        height: 40px !important;
+    }
+    
+    .form-label {
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-select, .form-control {
+        border-radius: 8px;
+        padding: 0.75rem;
+    }
+    
+    .booking-submit-btn {
+        padding: 12px;
+        font-weight: 500;
+        border-radius: 8px;
+    }
+    
+    .persian-datepicker {
+        z-index: 1000;
+    }
+    
+    .loading-spinner {
+        display: inline-block;
+        width: 1rem;
+        height: 1rem;
+        border: 0.2em solid currentColor;
+        border-right-color: transparent;
+        border-radius: 50%;
+        animation: spinner-border .75s linear infinite;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card booking-card">
+                <div class="booking-header">
+                    <h3 class="mb-0">
+                        <i class="bi bi-calendar-check me-2"></i>
+                        رزرو نوبت جدید
+                    </h3>
+                </div>
+                
+                <div class="card-body p-4">
+                    <form method="post" id="appointment-form">
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <div class="row g-4">
+                            <!-- انتخاب خدمت -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="id_service" class="form-label">
+                                        <i class="bi bi-scissors me-1"></i>
+                                        خدمت مورد نظر:
+                                    </label>
+                                    <select name="service" id="id_service" class="form-select">
+                                        <option value="">انتخاب خدمت</option>
+                                    </select>
+                                    {% if form.service.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.service.errors }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        
+                            <!-- انتخاب آرایشگر -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="id_stylist" class="form-label">
+                                        <i class="bi bi-person me-1"></i>
+                                        آرایشگر:
+                                    </label>
+                                    <select name="stylist" id="id_stylist" class="form-select">
+                                        <option value="">ابتدا خدمت را انتخاب کنید</option>
+                                    </select>
+                                    {% if form.stylist.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.stylist.errors }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                            <!-- انتخاب تاریخ -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="form-label">
+                                        <i class="bi bi-calendar3 me-1"></i>
+                                        تاریخ:
+                                    </label>
+                                    <input type="text" id="date-picker" class="form-control" 
+                                           name="jalali_date" readonly>
+                                    {% if form.date.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.date.errors }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- انتخاب ساعت -->
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label class="form-label">
+                                        <i class="bi bi-clock me-1"></i>
+                                        ساعت:
+                                    </label>
+                                    <input type="hidden" name="time" id="selected_time">
+                                    <div class="time-slots" id="time-slots">
+                                        <!-- ساعت‌ها به صورت پویا لود می‌شوند -->
+                                    </div>
+                                    {% if form.time.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.time.errors }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- دکمه ثبت -->
+                            <div class="col-12 mt-4">
+                                <button type="submit" class="btn btn-primary booking-submit-btn w-100">
+                                    <i class="bi bi-check2-circle me-2"></i>
+                                    ثبت نوبت
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/persian-date@1.1.0/dist/persian-date.min.js"></script>
+<script src="https://unpkg.com/persian-datepicker@1.2.0/dist/js/persian-datepicker.min.js"></script>
+<script>
+$(document).ready(function() {
+    // مقداردهی اولیه خدمات
+    var serviceSelect = $('#id_service');
+    serviceSelect.empty();
+    serviceSelect.append('<option value="">انتخاب خدمت</option>');
+    {% for service in services %}
+        serviceSelect.append(`<option value="{{ service.id }}">{{ service.name }}</option>`);
+    {% endfor %}
+    serviceSelect.prop('disabled', false);
+
+    // مدیریت انتخاب خدمت با بهبود عملکرد
+    serviceSelect.on('change', function() {
+        var serviceId = $(this).val();
+        var stylistSelect = $('#id_stylist');
+        
+        if (serviceId) {
+            $.ajax({
+                url: `/api/stylists/${serviceId}/`,
+                method: 'GET',
+                beforeSend: function() {
+                    stylistSelect
+                        .prop('disabled', true)
+                        .html('<option value="">در حال بارگذاری...</option>');
+                },
+                success: function(data) {
+                    stylistSelect.empty();
+                    stylistSelect.append('<option value="">انتخاب آرایشگر</option>');
+                    data.forEach(function(stylist) {
+                        stylistSelect.append(`<option value="${stylist.id}">${stylist.name}</option>`);
+                    });
+                    stylistSelect.prop('disabled', false);
+                },
+                error: function() {
+                    stylistSelect
+                        .prop('disabled', true)
+                        .html('<option value="">خطا در دریافت اطلاعات</option>');
+                }
+            });
+        } else {
+            stylistSelect
+                .prop('disabled', true)
+                .html('<option value="">ابتدا خدمت را انتخاب کنید</option>');
+        }
+        resetTimeSlots();
+    });
+
+    // Persian Date Picker initialization
+    $('#date-picker').persianDatepicker({
+        format: 'YYYY/MM/DD',
+        initialValue: false,
+        minDate: new persianDate().startOf('day'),
+        maxDate: new persianDate().add('month', 1),
+        autoClose: true,
+        persianDigit: true,
+        observer: true,
+        calendar: {
+            persian: {
+                locale: 'fa',
+                showHint: true,
+                leapYearMode: 'algorithmic'
+            }
+        },
+        navigator: {
+            enabled: true,
+            scroll: { enabled: true },
+            text: {
+                btnNextText: 'بعد',
+                btnPrevText: 'قبل'
+            }
+        },
+        toolbox: {
+            enabled: true,
+            calendarSwitch: { enabled: false }
+        },
+        dayPicker: {
+            enabled: true,
+            titleFormat: 'YYYY MMMM',
+            titleFormatter: function(unix, year, month) {
+                return `${year} ${month}`;
+            },
+            headRowLabels: ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج']
+        },
+        onSelect: function(unix) {
+            checkHoliday(unix);
+            loadTimeSlots();
+        },
+        onShow: function() {
+            $('.datepicker-plot-area').addClass('custom-datepicker');
+            loadHolidays();
+        }
+    });
+
+    // لود کردن روزهای تعطیل
+    function loadHolidays() {
+        $.ajax({
+            url: '/api/holidays/',
+            method: 'GET',
+            success: function(holidays) {
+                holidays.forEach(function(holiday) {
+                    $('.datepicker-day-view td[data-unix="' + holiday.date + '"]')
+                        .addClass('holiday')
+                        .attr('title', holiday.description)
+                        .css({
+                            'background-color': '#ffebee',
+                            'color': '#f44336',
+                            'cursor': 'not-allowed'
+                        });
+                });
+            }
+        });
+    }
+
+    // بررسی روز تعطیل
+    function checkHoliday(unix) {
+        $.ajax({
+            url: '/api/check-holiday/',
+            method: 'GET',
+            data: { date: unix },
+            success: function(response) {
+                if (response.is_holiday) {
+                    showAlert('این روز تعطیل است', 'warning');
+                    resetTimeSlots();
+                }
+            }
+        });
+    }
+
+    // لود کردن ساعت‌های خالی
+    function loadTimeSlots() {
+        var date = $('#date-picker').val();
+        var stylist = $('#id_stylist').val();
+        var service = $('#id_service').val();
+
+        if (date && stylist && service) {
+            $.ajax({
+                url: '/api/available-times/',
+                method: 'GET',
+                data: { date, stylist, service },
+                beforeSend: function() {
+                    $('#time-slots').html(`
+                        <div class="text-center p-3">
+                            <div class="loading-spinner me-2"></div>
+                            در حال بارگذاری...
+                        </div>
+                    `);
+                },
+                success: function(data) {
+                    if (data.length === 0) {
+                        $('#time-slots').html(`
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle me-2"></i>
+                                هیچ ساعت خالی برای این تاریخ وجود ندارد
+                            </div>
+                        `);
+                        return;
+                    }
+                    
+                    var html = '';
+                    data.forEach(function(slot) {
+                        html += `
+                            <div class="time-slot ${slot.available ? '' : 'unavailable'}"
+                                 data-time="${slot.time}"
+                                 onclick="selectTimeSlot(this)">
+                                ${slot.display}
+                            </div>
+                        `;
+                    });
+                    $('#time-slots').html(html);
+                },
+                error: function() {
+                    showAlert('خطا در دریافت ساعت‌های خالی', 'danger');
+                }
+            });
+        }
+    }
+
+    // ریست کردن ساعت‌ها
+    function resetTimeSlots() {
+        $('#time-slots').empty();
+        $('#selected_time').val('');
+    }
+
+    // نمایش پیام‌های سیستمی
+    window.showAlert = function(message, type) {
+        const alertHtml = `
+            <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        `;
+        $('#time-slots').html(alertHtml);
+    }
+
+    // انتخاب ساعت
+    window.selectTimeSlot = function(element) {
+        if (!$(element).hasClass('unavailable')) {
+            $('.time-slot').removeClass('selected');
+            $(element).addClass('selected');
+            $('#selected_time').val($(element).data('time'));
+        }
+    };
+
+    // ارسال فرم
+    $('#appointment-form').submit(function(e) {
+        e.preventDefault();
+        
+        var service = $('#id_service').val();
+        var stylist = $('#id_stylist').val();
+        var date = $('#date-picker').val();
+        var time = $('#selected_time').val();
+
+        if (!service || !stylist || !date || !time) {
+            showAlert('لطفاً تمام فیلدها را پر کنید', 'warning');
+            return false;
+        }
+
+        var formData = {
+            service: service,
+            stylist: stylist,
+            date: date,
+            selected_time: time,
+            csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
+        };
+
+        $.ajax({
+            url: '{% url "booking:book_appointment" %}',
+            type: 'POST',
+            data: formData,
+            beforeSend: function() {
+                $('.booking-submit-btn')
+                    .prop('disabled', true)
+                    .html('<div class="loading-spinner me-2"></div> در حال ثبت نوبت...');
+            },
+            success: function(response) {
+                if (response.status === 'success') {
+                    window.location.href = response.redirect_url;
+                } else {
+                    showAlert(response.message || 'خطا در ثبت نوبت', 'danger');
+                    $('.booking-submit-btn')
+                        .prop('disabled', false)
+                        .html('<i class="bi bi-check2-circle me-2"></i> ثبت نوبت');
+                }
+            },
+            error: function() {
+                showAlert('خطا در ارتباط با سرور', 'danger');
+                $('.booking-submit-btn')
+                    .prop('disabled', false)
+                    .html('<i class="bi bi-check2-circle me-2"></i> ثبت نوبت');
+            }
+        });
+    });
+
+    // آپدیت ساعت‌ها با تغییر آرایشگر
+    $('#id_stylist').change(function() {
+        if ($(this).val()) {
+            loadTimeSlots();
+        } else {
+            resetTimeSlots();
+        }
+    });
+});
+</script>
+{% endblock %}

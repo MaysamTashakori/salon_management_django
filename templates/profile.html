@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h4>اطلاعات شخصی</h4>
+                    <p>نام: {{ user.get_full_name }}</p>
+                    <p>ایمیل: {{ user.email }}</p>
+                    <p>شماره تماس: {{ user.phone_number }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <h4>تاریخچه نوبت‌ها</h4>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>تاریخ</th>
+                                    <th>خدمت</th>
+                                    <th>آرایشگر</th>
+                                    <th>وضعیت</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for appointment in appointments %}
+                                <tr>
+                                    <td>{{ appointment.date }}</td>
+                                    <td>{{ appointment.service.name }}</td>
+                                    <td>{{ appointment.stylist.name }}</td>
+                                    <td>{{ appointment.get_status_display }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

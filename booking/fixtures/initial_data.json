@@ -1,0 +1,74 @@
+[
+    {
+        "model": "auth.user",
+        "pk": 1,
+        "fields": {
+            "username": "stylist1",
+            "first_name": "سارا",
+            "last_name": "محمدی",
+            "email": "sara@example.com",
+            "password": "pbkdf2_sha256$260000$WFvxwLdwYPfA$9J8kF4Z5J5Z5J5Z5J5Z5J5Z5J5Z5J5Z5J5Z5J5Z5J5Z=",
+            "is_staff": true
+        }
+    },
+    {
+        "model": "auth.user",
+        "pk": 2,
+        "fields": {
+            "username": "stylist2",
+            "first_name": "مریم",
+            "last_name": "احمدی",
+            "email": "maryam@example.com",
+            "password": "pbkdf2_sha256$260000$WFvxwLdwYPfA$9J8kF4Z5J5Z5J5Z5J5Z5J5Z5J5Z5J5Z5J5Z5J5Z5J5Z=",
+            "is_staff": true
+        }
+    },
+    {
+        "model": "booking.service",
+        "pk": 1,
+        "fields": {
+            "name": "کوتاه کردن مو",
+            "description": "کوتاه کردن مو با متدهای روز",
+            "price": "150000",
+            "duration": 45
+        }
+    },
+    {
+        "model": "booking.service",
+        "pk": 2,
+        "fields": {
+            "name": "رنگ مو",
+            "description": "رنگ مو با برندهای معتبر",
+            "price": "800000",
+            "duration": 120
+        }
+    },
+    {
+        "model": "booking.service",
+        "pk": 3,
+        "fields": {
+            "name": "شینیون",
+            "description": "شینیون مو با جدیدترین متدها",
+            "price": "500000",
+            "duration": 90
+        }
+    },
+    {
+        "model": "booking.stylist",
+        "pk": 1,
+        "fields": {
+            "user": 1,
+            "phone": "09121234567",
+            "specialties": [1, 2]
+        }
+    },
+    {
+        "model": "booking.stylist",
+        "pk": 2,
+        "fields": {
+            "user": 2,
+            "phone": "09129876543",
+            "specialties": [2, 3]
+        }
+    }
+]
