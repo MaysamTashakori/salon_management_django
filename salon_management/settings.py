@@ -69,6 +69,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'salon_management.wsgi.application'
+TELEGRAM_BOT_TOKEN = '5999975663:AAFcpv29DRfURjzyiRBdngWsNO-YueotxK8'
 
 
 # Database
